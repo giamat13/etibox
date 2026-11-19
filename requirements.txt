@@ -1,0 +1,7 @@
+trimesh
+shapely
+manifold3d
+mapbox_earcut
+numpy
+scipy
+rtree
