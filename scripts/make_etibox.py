@@ -140,7 +140,21 @@ for i in range(N):
     l.apply_transform(trimesh.transformations.rotation_matrix(math.pi / 2, [0, 1, 0], point=[XH, 0, ZH]))
     lids.append(rotz(l, 2 * math.pi * i / N))
 
-out = trimesh.util.concatenate([body] + lids)
-import os; os.makedirs("models", exist_ok=True); out.export("models/etibox.stl")
-print("body watertight", body.is_watertight, "vol", round(body.volume), "bounds", out.bounds.round(1).tolist(),
-      "shells", len(out.split(only_watertight=False)))
+def place(m, i):
+    m = m.copy()
+    m.apply_transform(trimesh.transformations.rotation_matrix(math.pi / 2, [0, 1, 0], point=[XH, 0, ZH]))
+    return rotz(m, 2 * math.pi * i / N)
+
+
+inlays = [place(ext(symbol(KINDS[i]), 0.8, ZH + LID_T / 2 - 0.8), i) for i in range(N)]
+
+import os
+os.makedirs("models", exist_ok=True)
+white = trimesh.util.concatenate([body] + lids)
+black = trimesh.util.concatenate(inlays)
+white.export("models/etibox_white_part.stl")      # body + lids with engraved symbols (multicolor: white filament)
+black.export("models/etibox_black_part.stl")      # symbol inlays only (multicolor: black filament)
+# single-colour version: same as white part, symbols just engraved
+white.export("models/etibox_all_white.stl")
+print("body watertight", body.is_watertight, "white bounds", white.bounds.round(1).tolist(),
+      "black shells", len(black.split(only_watertight=False)))
