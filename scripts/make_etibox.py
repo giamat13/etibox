@@ -8,18 +8,18 @@ from shapely.affinity import rotate, translate
 from shapely.ops import unary_union
 
 N = 6
-R_LOBE, R_RING = 20.0, 27.0
+R_LOBE, R_RING = 27.0, 36.0
 H = 24.0
 FLOOR = 2.4
 WALL = 2.4
-HUB_R = 9.0
+HUB_R = 12.0
 SEAT_D = 2.4            # lid recess depth
 FLANGE = 1.2            # recess wider than opening
 CLR = 0.3               # lid-to-recess clearance
 LID_T = 2.4
 PLUG_D = 1.6
-X_POCKET = 39.5         # pockets end here (radially); hinge zone beyond
-XH = 45.4               # hinge axis radial position
+X_POCKET = 53.0         # pockets end here (radially); hinge zone beyond
+XH = 59.0               # hinge axis radial position
 ZH = H - 0.9            # hinge axis height (lid mid-plane)
 KR = 3.4                # knuckle radius
 PIN_R, HOLE_R = 1.4, 1.75
@@ -75,7 +75,7 @@ for i in range(N):
     cuts.append(ext(rotate(pocket0, a, origin=(0, 0), use_radians=True), H - FLOOR + 1, FLOOR))
     cuts.append(ext(rotate(recess0, a, origin=(0, 0), use_radians=True), SEAT_D + 1, H - SEAT_D))
     slot = trimesh.creation.box([12, LID_KL + 2 * GAP, 14])
-    slot.apply_translation([40.7 + 6, 0, ZH - 4.2 + 7])
+    slot.apply_translation([X_POCKET + 1.2 + 6, 0, ZH - 4.2 + 7])
     cuts.append(rotz(slot, a))
 body = diff(body, cuts)
 
@@ -85,8 +85,8 @@ for i in range(N):
     for s in (1, -1):
         y0, y1 = sorted((s * (LID_KL / 2 + GAP), s * (LID_KL / 2 + GAP + BK_L)))
         k = cyl_y(KR, y0, y1, XH, ZH)
-        prof = Polygon([(41.4, H - 14.5), (41.4, ZH), (XH + KR, ZH), (XH + KR, ZH - 1),
-                        (44.0, ZH - 1 - (XH + KR - 44.0)), (44.0, H - 14.5)])
+        prof = Polygon([(X_POCKET + 1.9, H - 14.5), (X_POCKET + 1.9, ZH), (XH + KR, ZH), (XH + KR, ZH - 1),
+                        (XH - 1.4, ZH - 1 - (XH + KR - 44.0)), (XH - 1.4, H - 14.5)])
         col = trimesh.creation.extrude_polygon(prof, y1 - y0)   # profile in (x,y)=(x,z), extruded along z
         col.apply_transform(trimesh.transformations.rotation_matrix(math.pi / 2, [1, 0, 0]))  # -> (x, -z, y)
         col.apply_translation([0, y1, 0])
@@ -97,7 +97,7 @@ body = union([body] + adds)
 
 
 # ---- lids (printed open, 90 deg) ----
-CX = 20.0   # symbol centre (radial), "up" = +x
+CX = 28.0   # symbol centre (radial), "up" = +x
 
 
 def rays(angles, r0, r1, w=0.9):
@@ -123,10 +123,10 @@ def make_lid(kind):
     plate = recess0.buffer(-CLR, 32)
     parts = [ext(plate, LID_T, ZH - LID_T / 2),
              ext(pocket0.buffer(-CLR, 32), PLUG_D, ZH - LID_T / 2 - PLUG_D)]
-    arm = trimesh.creation.box([XH - 38.0, LID_KL, LID_T])
-    arm.apply_translation([(XH + 38.0) / 2, 0, ZH])
+    arm = trimesh.creation.box([XH - (X_POCKET - 1.5), LID_KL, LID_T])
+    arm.apply_translation([(XH + X_POCKET - 1.5) / 2, 0, ZH])
     parts += [arm, cyl_y(KR, -LID_KL / 2, LID_KL / 2, XH, ZH)]
-    parts.append(ext(Point(31.0, 0).buffer(3.0, 32), 1.6, ZH + LID_T / 2))   # finger knob
+    parts.append(ext(Point(X_POCKET - 8.0, 0).buffer(3.0, 32), 1.6, ZH + LID_T / 2))   # finger knob
     lid = union(parts)
     engrave = ext(symbol(kind), 1.5, ZH + LID_T / 2 - 0.8)   # 0.8 mm deep
     return diff(lid, [cyl_y(HOLE_R, -LID_KL / 2 - 1, LID_KL / 2 + 1, XH, ZH), engrave])
