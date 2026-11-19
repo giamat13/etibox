@@ -1,4 +1,4 @@
-"""Medicine Box: 6-compartment flower pill box, each compartment with its own HINGED lid
+"""etibox: 6-compartment flower pill box, each compartment with its own HINGED lid
 (print-in-place pin hinge). Lids print standing open at 90 deg (no bridging over the pockets);
 fold them down by hand after printing. Units: mm."""
 import math
@@ -141,6 +141,6 @@ for i in range(N):
     lids.append(rotz(l, 2 * math.pi * i / N))
 
 out = trimesh.util.concatenate([body] + lids)
-import os; os.makedirs("models", exist_ok=True); out.export("models/medicine_box.stl")
+import os; os.makedirs("models", exist_ok=True); out.export("models/etibox.stl")
 print("body watertight", body.is_watertight, "vol", round(body.volume), "bounds", out.bounds.round(1).tolist(),
       "shells", len(out.split(only_watertight=False)))

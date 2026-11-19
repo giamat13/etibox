@@ -1,8 +1,8 @@
-"""Geometric / physics checks for medicine_box.stl against a Bambu Lab P1S (256x256x256 mm bed, 0.4 nozzle)."""
+"""Geometric / physics checks for etibox.stl against a Bambu Lab P1S (256x256x256 mm bed, 0.4 nozzle)."""
 import numpy as np
 import trimesh
 
-m = trimesh.load("models/medicine_box.stl")
+m = trimesh.load("models/etibox.stl")
 parts = m.split(only_watertight=False)
 ok = True
 def rep(name, good, detail):

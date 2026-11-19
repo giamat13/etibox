@@ -1,13 +1,13 @@
-# Medicine Box
+# etibox
 
 A 6-compartment pill box with a flower-shaped body. Each compartment has its own hinged lid (print-in-place pin hinge). The model is generated from code, so every dimension is a parameter.
 
 ![license](https://img.shields.io/badge/license-MIT-blue)
 
 ## Files
-- `models/medicine_box.stl` - ready-to-print model (body + 6 lids, lids printed standing open at 90°).
-- `scripts/make_medicine_box.py` - parametric generator (trimesh + shapely + manifold3d).
-- `scripts/check_medicine_box.py` - printability checks (bed fit, watertight, wall thickness, overhangs, rough bending stress).
+- `models/etibox.stl` - ready-to-print model (body + 6 lids, lids printed standing open at 90°).
+- `scripts/make_etibox.py` - parametric generator (trimesh + shapely + manifold3d).
+- `scripts/check_etibox.py` - printability checks (bed fit, watertight, wall thickness, overhangs, rough bending stress).
 
 ## Print (tested target: Bambu Lab P1S)
 - Material: PETG (or ASA). Avoid PLA for the hinge if you want it durable.
@@ -20,8 +20,8 @@ A 6-compartment pill box with a flower-shaped body. Each compartment has its own
 ```
 pip install -r requirements.txt
 # run from the repo root
-python scripts/make_medicine_box.py
-python scripts/check_medicine_box.py
+python scripts/make_etibox.py
+python scripts/check_etibox.py
 ```
 Edit the constants at the top of the generator (wall, height, clearances, hinge size).
 
