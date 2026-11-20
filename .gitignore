@@ -2,3 +2,6 @@ __pycache__/
 *.pyc
 *.log
 .venv/
+run.log
+test.log
+pip.log

@@ -26,6 +26,11 @@ PIN_R, HOLE_R = 1.4, 1.75
 LID_KL = 8.0            # lid knuckle length (tangential)
 GAP = 0.5               # gap lid knuckle <-> body knuckle
 BK_L = 5.0              # body knuckle length each side
+BEAD = 0.55             # snap bead protrusion on lid plug (beyond plug wall)
+GROOVE = 0.35           # groove depth beyond pocket wall (bead keeps 0.1 mm play in it)
+BEAD_Z0 = 0.2           # bead start above plug bottom
+BEAD_H = 0.8           # bead height (with 45 deg chamfers)
+HINGE_FREE = 6.0        # no bead/groove within this distance of pocket end near hinge
 
 
 def ext(poly, h, z=0.0):
@@ -66,6 +71,10 @@ wedge = Polygon([(0, 0)] + [(r_out * math.cos(-half + 2 * half * k / 24), r_out 
 wedge = wedge.difference(Point(0, 0).buffer(HUB_R, 64)).intersection(lobes[0].buffer(-WALL))
 pocket0 = wedge.buffer(-WALL).buffer(2.0, 32).buffer(-2.0, 32).intersection(box(0, -60, X_POCKET, 60))
 recess0 = pocket0.buffer(FLANGE, 32)
+PLUG_Z0 = ZH - LID_T / 2 - PLUG_D            # plug bottom z (closed)
+_plug = pocket0.buffer(-CLR, 32)
+_free = box(X_POCKET - HINGE_FREE, -100, 200, 100)   # hinge-side zone without detent
+groove_ring = pocket0.buffer(GROOVE, 32).difference(pocket0).difference(_free)
 
 # ---- body ----
 body = ext(outline, H)
@@ -77,6 +86,7 @@ for i in range(N):
     slot = trimesh.creation.box([12, LID_KL + 2 * GAP, 14])
     slot.apply_translation([X_POCKET + 1.2 + 6, 0, ZH - 4.2 + 7])
     cuts.append(rotz(slot, a))
+    cuts.append(rotz(ext(groove_ring, BEAD_H + 0.2, PLUG_Z0 + BEAD_Z0 - 0.1), a))
 body = diff(body, cuts)
 
 adds = [ext(Point(0, 0).buffer(HUB_R - 1).difference(Point(0, 0).buffer(HUB_R - 3)), 1.0, H)]
@@ -126,6 +136,10 @@ def make_lid(kind):
     arm = trimesh.creation.box([XH - (X_POCKET - 1.5), LID_KL, LID_T])
     arm.apply_translation([(XH + X_POCKET - 1.5) / 2, 0, ZH])
     parts += [arm, cyl_y(KR, -LID_KL / 2, LID_KL / 2, XH, ZH)]
+    # snap bead: chamfered ring on the plug (lead-in 45 deg both sides)
+    z0 = PLUG_Z0 + BEAD_Z0
+    for off, dz, h in ((BEAD * 0.5, 0.0, BEAD_H), (BEAD, 0.25, BEAD_H - 0.5)):   # stepped lead-in both sides
+        parts.append(ext(_plug.buffer(off, 32).difference(_plug.buffer(-0.5)).difference(_free), h, z0 + dz))
     parts.append(ext(Point(X_POCKET - 8.0, 0).buffer(3.0, 32), 1.6, ZH + LID_T / 2))   # finger knob
     lid = union(parts)
     engrave = ext(symbol(kind), 1.5, ZH + LID_T / 2 - 0.8)   # 0.8 mm deep
