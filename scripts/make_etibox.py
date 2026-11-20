@@ -26,7 +26,8 @@ PIN_R, HOLE_R = 1.4, 1.75
 LID_KL = 8.0            # lid knuckle length (tangential)
 GAP = 0.5               # gap lid knuckle <-> body knuckle
 BK_L = 5.0              # body knuckle length each side
-BEAD = 0.55             # snap bead protrusion on lid plug (beyond plug wall)
+import os
+BEAD = float(os.environ.get("ETIBOX_BEAD", 0.55))   # snap bead protrusion on lid plug (beyond plug wall)
 GROOVE = 0.35           # groove depth beyond pocket wall (bead keeps 0.1 mm play in it)
 BEAD_Z0 = 0.2           # bead start above plug bottom
 BEAD_H = 0.8           # bead height (with 45 deg chamfers)
@@ -162,13 +163,13 @@ def place(m, i):
 
 inlays = [place(ext(symbol(KINDS[i]), 0.8, ZH + LID_T / 2 - 0.8), i) for i in range(N)]
 
-import os
-os.makedirs("models", exist_ok=True)
 white = trimesh.util.concatenate([body] + lids)
 black = trimesh.util.concatenate(inlays)
-white.export("models/etibox_white_part.stl")      # body + lids with engraved symbols (multicolor: white filament)
-black.export("models/etibox_black_part.stl")      # symbol inlays only (multicolor: black filament)
-# single-colour version: same as white part, symbols just engraved
-white.export("models/etibox_all_white.stl")
+if not os.environ.get("ETIBOX_NO_EXPORT"):
+    os.makedirs("models", exist_ok=True)
+    white.export("models/etibox_white_part.stl")      # body + lids with engraved symbols (multicolor: white filament)
+    black.export("models/etibox_black_part.stl")      # symbol inlays only (multicolor: black filament)
+    # single-colour version: same as white part, symbols just engraved
+    white.export("models/etibox_all_white.stl")
 print("body watertight", body.is_watertight, "white bounds", white.bounds.round(1).tolist(),
       "black shells", len(black.split(only_watertight=False)))

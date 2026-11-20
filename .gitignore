@@ -5,3 +5,5 @@ __pycache__/
 run.log
 test.log
 pip.log
+sim.log
+coupon.log

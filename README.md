@@ -16,6 +16,13 @@ A 6-compartment pill box with a flower-shaped body. Each compartment has its own
 - After printing, fold each lid down by hand; the hinge has 0.35 mm clearance.
 - Not a medical device. Clean before use and do not rely on it for dosing safety.
 
+## Lid lock (snap detent)
+Each lid has a chamfered bead that clicks into a groove in the pocket wall, so the box stays shut when flipped or shaken.
+- `scripts/sim_lid.py` - lid dynamics: required holding force per event (flip 0.1 N, 8 g shake 0.7 N, 20 g knock 1.7 N, 1 m drop 8.6 N). A detent of ~3-5 N survives all but the drop at 5 N, and still opens with ~9-14 N finger force.
+- `scripts/test_lid.py` - lid swing sweep, no collision with the body from 0 to 90 deg.
+- `models/etibox_detent_coupon.stl` - calibration plate: one compartment printed with bead 0.35/0.45/0.55/0.65 mm. Print it first (PETG), keep the bead that clicks firmly and opens with one finger, set `ETIBOX_BEAD` (default 0.55) and rebuild.
+- Plastic stiffness is not simulated; the coupon is the real test.
+
 ## Rebuild
 ```
 pip install -r requirements.txt
