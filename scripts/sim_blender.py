@@ -27,7 +27,14 @@ BEAD_LEVER = CFG["bead_r_mm"] * S
 
 
 def reset():
-    bpy.ops.wm.read_factory_settings(use_empty=True)
+    if os.environ.get("ETIBOX_SHOW"):
+        # live GUI: a factory reset would destroy the window context, so just clear the scene
+        for o in list(bpy.data.objects):
+            bpy.data.objects.remove(o, do_unlink=True)
+        if bpy.context.scene.rigidbody_world:
+            bpy.ops.rigidbody.world_remove()
+    else:
+        bpy.ops.wm.read_factory_settings(use_empty=True)
     sc = bpy.context.scene
     sc.render.fps = FPS
     sc.gravity = (0, 0, -9.81)
@@ -270,7 +277,9 @@ if want("close"):
     arc((-40.0, 0.0, 6.0), OPEN_STOP + 8, OPEN_STOP + 8, 1, 20, fg)
     arc((-40.0, 0.0, 6.0), OPEN_STOP + 8, 0, 20, 140, fg)
     angs = run(sc, body, lid, 180, "close_finger" if RENDER else None)
-    report("finger closes lid", 0.0, angs, f" | ends at {angs[-1]:.1f} deg")
+    res = f"{'finger closes lid':38s} ends at {angs[-1]:.1f} deg -> " + ("CLOSED" if angs[-1] < 3.0 else "NOT CLOSED")
+    print("RESULT", res, flush=True)
+    results.append(res)
 
 # 7 open lid must not fall shut: lid resting at the stop, tilt box +-30 deg and 3 g jiggle
 if want("openhold"):
@@ -298,4 +307,5 @@ if want("opentilt"):
     print("RESULT", r, flush=True)
     results.append(r)
 
-open(os.path.join(ROOT, "models/sim/results.txt"), "w").write("\n".join(results) + "\n")
+if not os.environ.get("ETIBOX_SHOW"):
+    open(os.path.join(ROOT, "models/sim/results.txt"), "w").write("\n".join(results) + "\n")

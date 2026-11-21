@@ -12,7 +12,7 @@ PILL_R = 4.0                                   # 8 mm pills
 inner = g["pocket0"].buffer(-(PILL_R + 0.4))
 pills = []
 z = g["FLOOR"] + PILL_R + 0.3
-while z + PILL_R < g["SKIRT_Z0"] - 0.3:
+while z + PILL_R < g["PLUG_Z0"] - 0.3:
     x0, y0, x1, y1 = inner.bounds
     x = x0
     while x <= x1:
@@ -26,6 +26,6 @@ while z + PILL_R < g["SKIRT_Z0"] - 0.3:
     z += 2 * PILL_R + 0.6
 json.dump({"hinge": [g["XH"], 0.0, g["ZH"]], "pill_r": PILL_R, "pills": pills[:20],
            "lid_mass_g": lid.volume * 1.27e-3, "body_mass_g": g["body"].volume * 1.27e-3,
-           "bead_r_mm": g["XH"] - 19.0, "notch_r_mm": g["XH"] - 12.0},
+           "bead_r_mm": g["XH"] - g["T0"], "notch_r_mm": g["XH"] - g["T0"] - 3.0},
           open("models/sim/sim.json", "w"), indent=1)
 print("pills", len(pills[:20]), "lid g", round(lid.volume * 1.27e-3, 2), "body g", round(g["body"].volume * 1.27e-3, 1))

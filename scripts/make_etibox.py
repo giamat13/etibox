@@ -26,16 +26,9 @@ KR = 4.0                # knuckle radius (1.95 mm wall around the pin hole)
 PIN_R, HOLE_R = 1.7, 2.05   # 3.4 mm pin (was 2.8), 0.35 mm print-in-place clearance
 STOP_DEG = float(os.environ.get("ETIBOX_STOP", 150))  # open stop: lid leans ~60 deg past vertical, gravity keeps it open
 TOOTH_R = 5.0           # stop tooth on lid knuckle hits the slot floor at STOP_DEG
-NOTCH_W = 7.0          # fingernail notch at the lid's free (hub) end, to lift the lid
 LID_KL = 10.0           # lid knuckle/arm width (tangential): wider = stronger arm root
 GAP = 0.5               # gap lid knuckle <-> body knuckle
 BK_L = 5.0              # body knuckle length each side
-BEAD = float(os.environ.get("ETIBOX_BEAD", 0.55))   # snap bead protrusion beyond the lid skirt wall (skirt sits CLR inside the pocket wall)
-BEAD_F = 0.3            # flat top of the bead; 45 deg ramps both sides
-PLAY = 0.1              # radial play of the seated bead in its groove
-SKIRT_D = 2.4           # skirt below the plug carrying the bead: keeps the groove >= 1.2 mm below the lid seat
-SKIRT_T = 1.2           # skirt wall (3 perimeters)
-HINGE_FREE = 6.0        # no skirt/bead/groove within this distance of pocket end near hinge
 
 
 def ext(poly, h, z=0.0):
@@ -77,58 +70,62 @@ wedge = wedge.difference(Point(0, 0).buffer(HUB_R, 64)).intersection(lobes[0].bu
 pocket0 = wedge.buffer(-WALL).buffer(2.0, 32).buffer(-2.0, 32).intersection(box(0, -60, X_POCKET, 60))
 recess0 = pocket0.buffer(FLANGE, 32)
 PLUG_Z0 = ZH - LID_T / 2 - PLUG_D            # plug bottom z (closed)
-SKIRT_Z0 = PLUG_Z0 - SKIRT_D                  # skirt bottom z (closed)
-BEAD_Z0 = SKIRT_Z0 + 0.1                      # bead ramp starts here
-BEAD_TOP = BEAD_Z0 + 2 * BEAD + BEAD_F
-GROOVE = BEAD - CLR + PLAY                    # groove depth beyond the pocket wall
-_c = pocket0.centroid
-_free3d = trimesh.creation.box([200, 200, 200])
-_free3d.apply_translation([X_POCKET - HINGE_FREE + 100, 0, 0])
+# ---- latch (replaces the old snap ring) ----
+# A flexible tongue stands in the solid hub, just inside each pocket. Its lip hooks over a tab on the lid's
+# hub end. The tongue stands upright, so it flexes along the printed layers (the strong direction).
+# Close: the lid tab pushes the 45 deg ramp, the tongue bends toward the centre and clicks back over the tab.
+# Open: push the tongue top toward the centre with a thumb, lift the lid by its grip ridge.
+LATCH = float(os.environ.get("ETIBOX_LATCH", 0.5))   # lip overlap over the lid tab (holding depth)
+LATCH_W = 6.0           # tongue / tab width
+TONGUE_T = 1.3         # tongue thickness (3 perimeters + margin)
+TONGUE_L = 9.0          # tongue free length below the body top
+SLOT = 1.2              # gap behind the tongue (room to bend)
+PAD_W, PAD_H = 8.0, 5.0  # release lever pad on the tongue top (width limited by the neighbour levers)
+FIN_W, FIN_H, FIN_L = 12.0, 4.5, 6.0   # lift fin on each lid: pinch it between thumb and finger
+TAB = 3.0              # lid tab length past the recess edge, toward the centre
+XR = recess0.bounds[0]                 # recess edge (hub side), sector 0
+T0 = XR - TAB                          # lid tab tip (closed)
+LID_TOP = ZH + LID_T / 2
+LIP_Z0 = LID_TOP + 0.05                # lip underside, 0.05 above the closed lid
+LIP_H = 1.4            # thick enough for a 50 N pull at 2x safety
+TONGUE_TOP = LIP_Z0 + LIP_H + LATCH    # 45 deg ramp rises LATCH+gap over the lip
+TX1 = T0 - CLR                         # tongue front face
+TX0 = TX1 - TONGUE_T                   # tongue back face
 
 
-def sweep_ring(section, n=180):
-    """Solid swept around the pocket outline. section: closed polygon of (e, z), e = offset from
-    the pocket wall (+ = into the body wall). Offsets are sampled on rays from the pocket centroid
-    (pocket is star-shaped), so every 45 deg ramp is a true slope, not a staircase."""
-    import numpy as np, shapely
-    ang = np.linspace(0, 2 * math.pi, n, endpoint=False)
-    far = np.c_[_c.x + 200 * np.cos(ang), _c.y + 200 * np.sin(ang)]
-    lines = shapely.linestrings([[(_c.x, _c.y), tuple(p)] for p in far])
-    rings = {}
-    for e, _ in section:
-        if e not in rings:
-            pts = shapely.intersection(lines, pocket0.buffer(e, 64).exterior)
-            rings[e] = np.array([min(getattr(p, "geoms", [p]), key=lambda q: q.distance(_c)).coords[0] for p in pts])
-    V = np.vstack([np.c_[rings[e], np.full(n, z)] for e, z in section])
-    S = len(section)
-    F = []
-    for j in range(S):
-        jn = (j + 1) % S
-        for i in range(n):
-            a, b, c, d = j * n + i, j * n + (i + 1) % n, jn * n + (i + 1) % n, jn * n + i
-            F += [[a, b, c], [a, c, d]]
-    m = trimesh.Trimesh(V, F, process=True)
-    if m.volume < 0:
-        m.invert()
-    return trimesh.boolean.difference([m, _free3d], engine="manifold")
+def latch_cuts():
+    """Body cuts for sector 0: recess under the lid tab, slot behind and beside the tongue."""
+    tab_seat = trimesh.creation.box([XR - TX1 + 0.5, LATCH_W + 2 * CLR, SEAT_D + 2])
+    tab_seat.apply_translation([(XR + TX1 + 0.5) / 2, 0, H - SEAT_D + (SEAT_D + 2) / 2])
+    slot_b = trimesh.creation.box([SLOT, LATCH_W + 2 * SLOT, TONGUE_L + 2])
+    slot_b.apply_translation([TX0 - SLOT / 2, 0, H - TONGUE_L + (TONGUE_L + 2) / 2])
+    sides = []
+    for s in (1, -1):
+        sd = trimesh.creation.box([TONGUE_T + 0.01, SLOT, TONGUE_L + 2])
+        sd.apply_translation([(TX0 + TX1) / 2, s * (LATCH_W / 2 + SLOT / 2), H - TONGUE_L + (TONGUE_L + 2) / 2])
+        sides.append(sd)
+    return [tab_seat, slot_b] + sides
 
 
-# groove = bead outline pushed out by PLAY; roof 52 deg (steeper than 45 -> prints without support)
-ROOF = 1.3              # groove roof rise per mm of depth
-groove_ring = sweep_ring([(-0.6, BEAD_Z0 - 0.4),
-                          (GROOVE, BEAD_Z0 + BEAD),
-                          (GROOVE, BEAD_Z0 + BEAD + BEAD_F),
-                          (-0.6, BEAD_Z0 + BEAD + BEAD_F + (GROOVE + 0.6) * ROOF)])
-# lid skirt + bead + inner fillet (fillet keeps the skirt's hub end printable when the lid prints standing)
-skirt_ring = sweep_ring([(-CLR - SKIRT_T - 2.4, PLUG_Z0 + 0.3),
-                         (-CLR - SKIRT_T - 2.4, PLUG_Z0),
-                         (-CLR - SKIRT_T, SKIRT_Z0),
-                         (-CLR, SKIRT_Z0),
-                         (-CLR, BEAD_Z0),
-                         (-CLR + BEAD, BEAD_Z0 + BEAD),
-                         (-CLR + BEAD, BEAD_Z0 + BEAD + BEAD_F),
-                         (-CLR, BEAD_TOP),
-                         (-CLR, PLUG_Z0 + 0.3)])
+def latch_tongue_top():
+    """Part of tongue + lip above the body top (sector 0). Profile in (x, z), extruded along y."""
+    prof = Polygon([(TX0, H - 0.5), (TX1, H - 0.5), (TX1, LIP_Z0), (T0 + LATCH, LIP_Z0),
+                    (T0 + LATCH, LIP_Z0 + 0.6), (TX1, LIP_Z0 + 0.6 + (T0 + LATCH - TX1)), (TX1, TONGUE_TOP),
+                    (TX0, TONGUE_TOP)])
+    m = trimesh.creation.extrude_polygon(prof, LATCH_W)
+    m.apply_transform(trimesh.transformations.rotation_matrix(math.pi / 2, [1, 0, 0]))
+    m.apply_translation([0, LATCH_W / 2, 0])
+    # release lever: wide pad above the lip so a whole fingertip (adult / elderly) can push it.
+    # Flares from LATCH_W to PAD_W at 45 deg (no unsupported overhang when printed upright).
+    fl = (PAD_W - LATCH_W) / 2
+    pp = Polygon([(-LATCH_W / 2, TONGUE_TOP - 0.01), (LATCH_W / 2, TONGUE_TOP - 0.01), (PAD_W / 2, TONGUE_TOP + fl),
+                  (PAD_W / 2, TONGUE_TOP + PAD_H), (-PAD_W / 2, TONGUE_TOP + PAD_H), (-PAD_W / 2, TONGUE_TOP + fl)])
+    pad = trimesh.creation.extrude_polygon(pp, TX1 - TX0)          # profile (y, z), extruded along x
+    pad.apply_transform(trimesh.transformations.rotation_matrix(math.pi / 2, [1, 0, 0]))   # (y,z,x)->(y,-x,z)
+    pad.apply_transform(trimesh.transformations.rotation_matrix(math.pi / 2, [0, 0, 1]))   # -> (x, y, z)
+    pad.apply_translation([TX0 - pad.bounds[0][0], 0, 0])
+    return union([m, pad])
+
 
 # ---- body ----
 body = ext(outline, H)
@@ -143,10 +140,10 @@ for i in range(N):
     arm_clear = trimesh.creation.box([1.0, LID_KL + 2 * GAP, SEAT_D + 1])   # lid arm passes here: wall only below the seat
     arm_clear.apply_translation([X_POCKET + FLANGE + 0.5, 0, H - SEAT_D + (SEAT_D + 1) / 2])
     cuts.append(rotz(arm_clear, a))
-    cuts.append(rotz(groove_ring, a))
+    cuts += [rotz(c, a) for c in latch_cuts()]
 body = diff(body, cuts)
 
-adds = [ext(Point(0, 0).buffer(HUB_R - 1).difference(Point(0, 0).buffer(HUB_R - 3)), 1.0, H)]
+adds = []
 for i in range(N):
     a = 2 * math.pi * i / N
     for s in (1, -1):
@@ -160,13 +157,8 @@ for i in range(N):
         adds += [rotz(k, a), rotz(col, a)]
     pin = cyl_y(PIN_R, -(LID_KL / 2 + GAP + BK_L), LID_KL / 2 + GAP + BK_L, XH, ZH)
     adds.append(rotz(pin, a))
+    adds.append(rotz(latch_tongue_top(), a))
 body = union([body] + adds)
-notches = []
-for i in range(N):
-    nb = trimesh.creation.box([5.5, NOTCH_W, SEAT_D + 1.5 + 3])
-    nb.apply_translation([11.5 + 5.5 / 2, 0, H - SEAT_D - 1.5 + (SEAT_D + 1.5 + 3) / 2])   # starts past the hub rim (r 11): no 0.5 mm rim sliver
-    notches.append(rotz(nb, 2 * math.pi * i / N))
-body = diff(body, notches)
 
 
 # ---- lids (printed open, 90 deg) ----
@@ -210,8 +202,19 @@ def make_lid(kind):
     tooth.apply_translation([XH, 0, ZH])
     if os.environ.get("ETIBOX_TOOTH", "0") == "1":
         parts.append(tooth)
-    parts.append(skirt_ring)   # snap skirt with 45 deg bead
-    parts.append(ext(Point(X_POCKET - 8.0, 0).buffer(3.0, 32), 1.6, ZH + LID_T / 2))   # finger knob
+    # latch tab under the tongue lip + grip ridge to lift the lid
+    tab = trimesh.creation.box([XR + CLR - T0 + 0.5, LATCH_W, LID_T])
+    tab.apply_translation([(XR + CLR + T0 + 0.5) / 2, 0, ZH])
+    # lift fin: vertical face toward the centre for the thumb, 45 deg back toward the hinge
+    # (that face points down in the 90 deg print pose, so it prints without support)
+    xa = XR + 2.0
+    fp = Polygon([(xa, LID_TOP - 0.2), (xa + FIN_L, LID_TOP - 0.2), (xa + FIN_L - FIN_H, LID_TOP + FIN_H),
+                  (xa, LID_TOP + FIN_H)])
+    fin = trimesh.creation.extrude_polygon(fp, FIN_W)
+    fin.apply_transform(trimesh.transformations.rotation_matrix(math.pi / 2, [1, 0, 0]))
+    fin.apply_translation([0, FIN_W / 2, 0])
+    fin = trimesh.boolean.intersection([fin, ext(plate.buffer(-0.6, 32), FIN_H + 2, ZH)], engine="manifold")
+    parts += [tab, fin]
     lid = union(parts)
     engrave = ext(symbol(kind), 1.5, ZH + LID_T / 2 - 0.8)   # 0.8 mm deep
     return diff(lid, [cyl_y(HOLE_R, -LID_KL / 2 - 1, LID_KL / 2 + 1, XH, ZH), engrave])
@@ -233,6 +236,18 @@ def place(m, i):
 
 inlays = [place(ext(symbol(KINDS[i]), 0.8, ZH + LID_T / 2 - 0.8), i) for i in range(N)]
 
+def clean(m):
+    """Weld vertices to STL precision and drop zero-area slivers, so the saved file splits into the same
+    closed parts as in memory (unwelded near-duplicates broke the body into ~170 fragments on reload)."""
+    # manifold's simplify collapses edges shorter than the tolerance while keeping the mesh closed
+    import manifold3d as mf
+    man = mf.Manifold(mf.Mesh(vert_properties=m.vertices.astype("float32"), tri_verts=m.faces.astype("uint32")))
+    out = man.simplify(1e-3).to_mesh()
+    return trimesh.Trimesh(out.vert_properties[:, :3], out.tri_verts, process=True)
+
+
+body = clean(body)
+lids = [clean(l) for l in lids]
 white = trimesh.util.concatenate([body] + lids)
 black = trimesh.util.concatenate(inlays)
 if not os.environ.get("ETIBOX_NO_EXPORT"):

@@ -7,10 +7,10 @@ from shapely.geometry import Polygon
 from shapely.affinity import translate
 
 os.environ["ETIBOX_NO_EXPORT"] = "1"
-BEADS = [0.45, 0.55, 0.65, 0.75]
+BEADS = [0.3, 0.5, 0.7, 0.9]   # latch lip overlap, mm
 parts = []
 for n, b in enumerate(BEADS):
-    os.environ["ETIBOX_BEAD"] = str(b)
+    os.environ["ETIBOX_LATCH"] = str(b)
     g = runpy.run_path("scripts/make_etibox.py")
     r, h = 72.0, math.pi / 6
     wedge = Polygon([(0, 0)] + [(r * math.cos(-h + 2 * h * k / 20), r * math.sin(-h + 2 * h * k / 20)) for k in range(21)])
