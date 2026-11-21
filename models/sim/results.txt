@@ -1,24 +1,9 @@
-flip 180 + hold 1.4 s + flip back      F_hold= 0.0 N  lid angle min   -0.3 max  172.2 end   -0.2 deg -> OPENED
-tumble 2 turns on 3 axes in 2 s        F_hold= 0.0 N  lid angle min   -0.4 max  195.4 end   -0.1 deg -> OPENED
-flip, then shake upside down 3 g 10 Hz F_hold= 0.0 N  lid angle min   -1.1 max  196.7 end  149.0 deg -> OPENED
-flip, then shake upside down 8 g 10 Hz F_hold= 0.0 N  lid angle min   -1.0 max  196.0 end  152.9 deg -> OPENED
-drop 1 m lid-up onto hard floor, pills F_hold= 0.0 N  lid angle min   -6.5 max  196.2 end  196.0 deg -> OPENED | body fell 1.03 m
-flip 180 + hold 1.4 s + flip back      F_hold= 5.0 N  lid angle min   -0.3 max    0.3 end   -0.2 deg -> stayed closed
-tumble 2 turns on 3 axes in 2 s        F_hold= 5.0 N  lid angle min   -0.6 max    0.6 end   -0.1 deg -> stayed closed
-flip, then shake upside down 3 g 10 Hz F_hold= 5.0 N  lid angle min   -0.6 max  195.5 end   62.6 deg -> OPENED
-flip, then shake upside down 8 g 10 Hz F_hold= 5.0 N  lid angle min   -1.6 max  195.6 end  152.9 deg -> OPENED
-drop 1 m lid-up onto hard floor, pills F_hold= 5.0 N  lid angle min   -2.2 max  193.3 end    0.0 deg -> OPENED | body fell 1.03 m
-flip 180 + hold 1.4 s + flip back      F_hold=10.0 N  lid angle min   -0.3 max    0.3 end   -0.2 deg -> stayed closed
-tumble 2 turns on 3 axes in 2 s        F_hold=10.0 N  lid angle min   -0.6 max    0.6 end   -0.1 deg -> stayed closed
-flip, then shake upside down 3 g 10 Hz F_hold=10.0 N  lid angle min   -0.6 max    0.6 end    0.6 deg -> stayed closed
-flip, then shake upside down 8 g 10 Hz F_hold=10.0 N  lid angle min   -0.6 max    0.6 end    0.6 deg -> stayed closed
-drop 1 m lid-up onto hard floor, pills F_hold=10.0 N  lid angle min    0.0 max    0.0 end    0.0 deg -> stayed closed | body fell 1.03 m
-flip 180 + hold 1.4 s + flip back      F_hold=15.0 N  lid angle min   -0.3 max    0.3 end   -0.2 deg -> stayed closed
-tumble 2 turns on 3 axes in 2 s        F_hold=15.0 N  lid angle min   -0.6 max    0.6 end   -0.1 deg -> stayed closed
-flip, then shake upside down 3 g 10 Hz F_hold=15.0 N  lid angle min   -0.6 max    0.6 end    0.6 deg -> stayed closed
-flip, then shake upside down 8 g 10 Hz F_hold=15.0 N  lid angle min   -0.6 max    0.6 end    0.6 deg -> stayed closed
-drop 1 m lid-up onto hard floor, pills F_hold=15.0 N  lid angle min    0.0 max    0.0 end    0.0 deg -> stayed closed | body fell 1.03 m
+flip 180 + hold 1.4 s + flip back      F_hold=20.0 N  lid angle min   -0.3 max    0.3 end   -0.2 deg -> stayed closed
+tumble 2 turns on 3 axes in 2 s        F_hold=20.0 N  lid angle min   -0.6 max    0.6 end   -0.1 deg -> stayed closed
+flip, then shake upside down 3 g 10 Hz F_hold=20.0 N  lid angle min   -0.6 max    0.6 end    0.6 deg -> stayed closed
+flip, then shake upside down 8 g 10 Hz F_hold=20.0 N  lid angle min   -0.6 max    0.6 end    0.6 deg -> stayed closed
+drop 1 m lid-up onto hard floor, pills F_hold=20.0 N  lid angle min    0.0 max    0.0 end    0.0 deg -> stayed closed | body fell 1.03 m
 finger opens lid, lets go              F_hold=20.0 N  lid angle min    0.0 max  196.0 end  196.0 deg -> OPENED | rests at 196 deg (stop 196)
-finger closes lid                      F_hold= 0.0 N  lid angle min   -5.2 max  196.0 end   -5.1 deg -> OPENED | ends at -5.1 deg
+finger closes lid                      ends at -5.1 deg -> CLOSED
 open lid, tilt +-40 deg each axis + 1.5 g knocks min lid angle  187.9 deg  -> stayed open
 open lid, slow tilt toward closing lid falls shut at box tilt ~None deg
