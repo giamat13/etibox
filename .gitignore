@@ -7,3 +7,10 @@ test.log
 pip.log
 sim.log
 coupon.log
+blender.log
+diag.log
+drop.log
+render.log
+export.log
+check.log
+models/sim/renders/

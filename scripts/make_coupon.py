@@ -1,4 +1,4 @@
-"""Detent calibration plate: one compartment + lid printed 4x with bead 0.35/0.45/0.55/0.65 mm.
+"""Detent calibration plate: one compartment + lid printed 4x with bead 0.45/0.55/0.65/0.75 mm.
 Print it first on the P1S, flip/shake each, keep the value that clicks firmly but opens with one finger.
 Run from repo root: python scripts/make_coupon.py"""
 import math, os, runpy
@@ -7,7 +7,7 @@ from shapely.geometry import Polygon
 from shapely.affinity import translate
 
 os.environ["ETIBOX_NO_EXPORT"] = "1"
-BEADS = [0.35, 0.45, 0.55, 0.65]
+BEADS = [0.45, 0.55, 0.65, 0.75]
 parts = []
 for n, b in enumerate(BEADS):
     os.environ["ETIBOX_BEAD"] = str(b)

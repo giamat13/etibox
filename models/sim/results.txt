@@ -1,0 +1,2 @@
+drop 1 m lid-up onto hard floor, pills F_hold=20.0 N  lid angle min    0.0 max    0.0 end    0.0 deg -> stayed closed | body fell 1.03 m
+drop 1 m lid-up onto hard floor, pills F_hold=25.0 N  lid angle min    0.0 max    0.0 end    0.0 deg -> stayed closed | body fell 1.03 m
