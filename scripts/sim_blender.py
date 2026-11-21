@@ -14,6 +14,7 @@ S = 0.001                                    # mm -> m
 FPS, SUB = 100, 10                           # 1000 Hz physics
 OPEN_STOP = float(os.environ.get("ETIBOX_OPEN_STOP", 196))   # from test_lid.py (lid rests against the outside of the box)
 RENDER = "--render" in sys.argv
+OPEN_F = float(os.environ.get("ETIBOX_OPEN_F", 20))   # detent used in the finger-open test
 VIDEO = int(os.environ.get("ETIBOX_VIDEO", 0))   # render every Nth frame (for make_video.py)
 ONLY = [k for k in os.environ.get("ETIBOX_ONLY", "").split(",") if k]
 TRACE = bool(os.environ.get("ETIBOX_TRACE"))
@@ -223,7 +224,7 @@ def finger(p_rel_mm):
 
 FS = [float(x) for x in os.environ.get("ETIBOX_F", "0,5,10,15").split(",")]
 for F in FS:
-    tag = (lambda t: (t if RENDER and F in (0.0, 5.0) else None))
+    tag = (lambda t: (t if RENDER else None))
     if want("flip"):   # 1 flip upside down slowly, hold, flip back
         sc, body, lid, det = build(F)
         key_body(body, [(1, (0, 0, 0), (0, 0, 0)), (60, (0, 0, 0), (180, 0, 0)), (200, (0, 0, 0), (180, 0, 0)), (260, (0, 0, 0), (360, 0, 0))])
@@ -254,13 +255,13 @@ for F in FS:
 
 # 5 opening by finger (F_hold 5 N): finger under the free end swings the lid up to 120 deg, then pulls back
 if want("open"):
-    sc, body, lid, det = build(15.0, pills=False)
+    sc, body, lid, det = build(OPEN_F, pills=False)
     fg = finger((-40.0, 0.0, -7.2))
     arc((-40.0, 0.0, -7.2), 0, 0, 1, 20, fg)
     arc((-40.0, 0.0, -7.2), 0, 120, 20, 120, fg)
     arc((-40.0, 0.0, -7.2), 120, 0, 125, 200, fg)
     angs = run(sc, body, lid, 260, "open_finger" if RENDER else None)
-    report("finger opens lid, lets go", 15.0, angs, f" | rests at {angs[-1]:.0f} deg (stop {OPEN_STOP:.0f})")
+    report("finger opens lid, lets go", OPEN_F, angs, f" | rests at {angs[-1]:.0f} deg (stop {OPEN_STOP:.0f})")
 
 # 6 closing by finger: lid open at stop, finger pushes it down to closed
 if want("close"):

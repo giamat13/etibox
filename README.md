@@ -42,7 +42,7 @@ Blender, holding force needed (F_hold = force at the bead before the lid lets go
 | 1 m drop on a hard floor | opens | opens | opens | opens | holds |
 
 Everyday use (flip, bag, shaking) needs ~10 N; surviving a 1 m drop needs ~20 N. Videos: `models/sim/*.gif`.
-At 15 N a finger still opens the lid, which then rests at 196°. Closing by finger reaches 0°. An open lid stays open through ±40° tilts with knocks.
+Target: 20 N (passes every test above). At 20 N a finger still opens the lid, which then rests at 196°. Closing by finger reaches 0°. An open lid stays open through ±40° tilts with knocks.
 
 Plastic stiffness is only estimated, so print the coupon first.
 
